@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: kharcha
+      POSTGRES_USER: ${DB_USER:-kharcha}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kharcha}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/kharcha
+      DB_USER: ${DB_USER:-kharcha}
+      DB_PASSWORD: ${DB_PASSWORD:-kharcha}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
