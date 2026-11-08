@@ -23,8 +23,16 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/kharcha
       DB_USER: ${DB_USER:-kharcha}
       DB_PASSWORD: ${DB_PASSWORD:-kharcha}
-    ports:
-      - "8080:8080"
+    networks:
+      default:            # to reach db
+      proxy_net:          # so nginx can reach it as http://kharcha:8080
+        aliases: [kharcha]
+    # No published ports: nginx reaches the api over proxy_net.
+    # For local debugging on the box, add: ports: ["127.0.0.1:8080:8080"]
 
 volumes:
   pgdata:
+
+networks:
+  proxy_net:
+    external: true        # created by the nginx proxy's compose file
